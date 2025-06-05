@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/faturas.js",
+      "src": "api/fatura.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/faturas",
-      "dest": "/api/faturas.js"
+      "src": "/api/fatura",
+      "dest": "/api/fatura.js"
     }
   ]
 }
