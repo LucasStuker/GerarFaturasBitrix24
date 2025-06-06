@@ -60,7 +60,15 @@ export default async function handler(req, res) {
     }
 
     const parcelas = Math.ceil(valorRestante / valorBoleto);
-    const begindate = new Date();
+    const dataInicioString = deal.UF_CRM_1733754864657
+    let begindate = new Date();
+
+    if (dataInicioString && !isNaN(new Date(dataInicioString))) {
+        begindate = new Date(dataInicioString)
+        console.log( `Data de inicio do campo: ${begindate}`)    
+      } else {
+        console.log (`Campo de data não preenchido ou invalido. Usando data de hoje`)
+      }
 
     for (let i = 0; i < parcelas; i++) {
       const valorParcela = valorRestante >= valorBoleto ? valorBoleto : valorRestante;
