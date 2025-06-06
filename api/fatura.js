@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
   // 🔍 Aceitar deal_id via POST ou GET
   if (method === 'POST') {
-    dealId = req.body.deal_id;
+    dealId = req.query.deal_id || req.body.deal_id;
   } else if (method === 'GET') {
     dealId = req.query.deal_id;
   } else {
