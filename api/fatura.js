@@ -77,7 +77,7 @@ export default async function handler(req, res) {
               TITLE: titulo,
               OPPORTUNITY: valorParcela,
               COMMENTS: `R$ ${saldoRestanteAtualizado.toFixed(2)}`,
-              UF_DEAL_ID: dealId, // ⚠️ Confirme se esse é o campo certo para vincular ao negócio
+              parentId2: dealId, // ⚠️ Confirme se esse é o campo certo para vincular ao negócio
               CATEGORY_ID: 9,
               COMPANY_ID: empresaId,
               CONTACT_ID: contatoId,
