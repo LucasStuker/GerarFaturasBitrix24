@@ -71,24 +71,23 @@ export default async function handler(req, res) {
       const saldoRestanteAtualizado = valorRestante - valorParcela;
 
       const titulo = `${empresaNome} Parcela ${i + 1}/${parcelas} - Negócio ${dealId}`;
-      const payload = {
-        entityTypeId: 31,
-        fields: {
-          TITLE: titulo,
-          OPPORTUNITY: valorParcela,
-          COMMENTS: `Saldo restante após esta fatura: R$ ${saldoRestanteAtualizado.toFixed(2)}`,
-          UF_DEAL_ID: dealId,
-          COMPANY_ID: empresaId,
-          CONTACT_ID: contatoId,
-          UF_COMPANY_ID: empresaId,
-          UF_CONTACT_ID: contatoId,
-          BEGINDATE: vencimento.toISOString().split('T')[0],
-          CLOSEDATE: closedate.toISOString().split('T')[0],
-          PAY_SYSTEM_ID: 1,
-        },
-        parentId2: dealId,
-        CATEGORY_ID: 9,
-      };
+     const payload = {
+            entityTypeId: 31,
+            fields: {
+              TITLE: titulo,
+              OPPORTUNITY: valorParcela,
+              COMMENTS: `R$ ${saldoRestanteAtualizado.toFixed(2)}`,
+              UF_DEAL_ID: dealId, // ⚠️ Confirme se esse é o campo certo para vincular ao negócio
+              CATEGORY_ID: 9,
+              COMPANY_ID: empresaId,
+              CONTACT_ID: contatoId,
+              UF_COMPANY_ID: empresaId,
+              UF_CONTACT_ID: contatoId,
+              BEGINDATE: vencimento.toISOString().split('T')[0],
+              CLOSEDATE: closedate.toISOString().split('T')[0],
+              PAY_SYSTEM_ID: 1,
+            },
+          };
 
       const response = await axios.post(`${WEBHOOK_URL}crm.item.add`, payload);
       console.log(`[FATURA ${i + 1}] Criada:`, response.data.result);
