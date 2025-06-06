@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   const method = req.method;
   let dealId;
 
-  // ✅ Aceitar deal_id via POST ou GET e sanitizar
+  // 🔍 Aceitar deal_id via POST ou GET
   if (method === 'POST') {
     dealId = req.body.deal_id;
   } else if (method === 'GET') {
@@ -13,28 +13,22 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  // Sanitizar ID: remover espaços e underscores extras
-  if (typeof dealId === 'string') {
-    dealId = dealId.replace(/[^0-9]/g, ''); // remove tudo que não for número
-  }
-
   if (!dealId) {
-    return res.status(400).json({ error: 'deal_id é obrigatório e deve ser válido' });
+    return res.status(400).json({ error: 'deal_id é obrigatório' });
   }
 
   try {
-    console.log('[INÍCIO] Gerando faturas para o negócio:', dealId);
+    console.log('[INÍCIO] Gerar faturas para negócio ID:', dealId);
 
     const WEBHOOK_URL = 'https://ecosystem.praiastur.com.br/rest/14877/i458pb5u53jin1wk/';
 
-    // Buscar negócio
+    // Buscar dados do negócio
     const { data: dealRes } = await axios.get(`${WEBHOOK_URL}crm.deal.get`, { params: { id: dealId } });
-    const deal = dealRes?.result;
-    if (!deal) {
-      console.error('[ERRO] Negócio não encontrado:', dealId);
+    if (!dealRes.result) {
       return res.status(404).json({ error: 'Negócio não encontrado' });
     }
 
+    const deal = dealRes.result;
     const valorTotal = parseFloat(deal.OPPORTUNITY || 0);
     const valorCredito = parseFloat(deal.UF_CRM_DEAL_1733226466881 || 0);
     const valorVista = parseFloat(deal.UF_CRM_DEAL_1733226515325 || 0);
@@ -45,23 +39,23 @@ export default async function handler(req, res) {
     const empresaId = deal.COMPANY_ID;
 
     if (formaPagamento !== '191913') {
-      console.log('[INFO] Forma de pagamento não é boleto. Encerrando.');
       return res.status(200).json({ error: 'Forma de pagamento não é boleto' });
     }
 
     if (!empresaId) {
-      console.error('[ERRO] Empresa não vinculada ao negócio.');
       return res.status(400).json({ error: 'Empresa do negócio não encontrada' });
     }
 
     // Buscar empresa
     const { data: companyRes } = await axios.get(`${WEBHOOK_URL}crm.company.get`, { params: { id: empresaId } });
-    const empresaNome = companyRes?.result?.TITLE || 'Empresa';
+    if (!companyRes.result) {
+      return res.status(404).json({ error: 'Empresa não encontrada' });
+    }
 
+    const empresaNome = companyRes.result.TITLE || 'Empresa';
     let valorRestante = valorTotal - valorCredito - valorVista;
 
     if (!valorRestante || !valorBoleto || !contatoId) {
-      console.error('[ERRO] Campos ausentes ou inválidos:', { valorRestante, valorBoleto, contatoId });
       return res.status(400).json({ error: 'Campos obrigatórios ausentes ou inválidos' });
     }
 
@@ -72,14 +66,11 @@ export default async function handler(req, res) {
       const valorParcela = valorRestante >= valorBoleto ? valorBoleto : valorRestante;
       const vencimento = new Date(begindate);
       vencimento.setMonth(begindate.getMonth() + i);
-
       const closedate = new Date(vencimento);
       closedate.setDate(closedate.getDate() + 40);
-
       const saldoRestanteAtualizado = valorRestante - valorParcela;
 
       const titulo = `${empresaNome} Parcela ${i + 1}/${parcelas} - Negócio ${dealId}`;
-
       const payload = {
         entityTypeId: 31,
         fields: {
@@ -100,17 +91,16 @@ export default async function handler(req, res) {
       };
 
       const response = await axios.post(`${WEBHOOK_URL}crm.item.add`, payload);
-      console.log(`[FATURA ${i + 1}/${parcelas}] Criada com ID:`, response.data.result);
+      console.log(`[FATURA ${i + 1}] Criada:`, response.data.result);
 
       valorRestante -= valorParcela;
-      await new Promise(resolve => setTimeout(resolve, 300)); // evitar rate limit
+      await new Promise(resolve => setTimeout(resolve, 300)); // delay entre faturas
     }
 
-    console.log('[SUCESSO] Todas as faturas foram geradas com sucesso.');
     return res.status(200).json({ status: 'Faturas geradas com sucesso' });
 
   } catch (error) {
-    console.error('[ERRO INTERNO]', error?.response?.data || error.message || error);
+    console.error('[ERRO]', error?.response?.data || error.message || error);
     return res.status(500).json({ error: 'Erro ao gerar faturas' });
   }
 }
