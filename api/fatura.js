@@ -22,7 +22,6 @@ export default async function handler(req, res) {
 
     const WEBHOOK_URL = 'https://ecosystem.praiastur.com.br/rest/14877/i458pb5u53jin1wk/';
 
-    // Buscar dados do negócio
     const { data: dealRes } = await axios.get(`${WEBHOOK_URL}crm.deal.get`, { params: { id: dealId } });
     if (!dealRes.result) {
       return res.status(404).json({ error: 'Negócio não encontrado' });
