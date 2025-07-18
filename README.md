@@ -83,7 +83,3 @@ Edite os seguintes campos de acordo com os campos personalizados configurados no
 - Conta Bitrix24 com acesso a Webhooks REST
 - CRM com campos personalizados configurados corretamente
 - Node.js v16 ou superior
-
-## 📄 Licença
-
-Este projeto está licenciado sob a [MIT License](LICENSE).
